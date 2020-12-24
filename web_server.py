@@ -61,17 +61,28 @@ class WSGIServer(object):
                 new_socket.send(html_content)
         else:
             # 如果以py接尾，是动态资源的请求
-            header = "HTTP/1.1 200 OK\r\n"
+            env = dict()
+            body = mini_frame.application(env, self.set_response_header)
+
+            header = "HTTP/1.1 %s\r\n" % self.status
+
+            for temp in self.headers:
+                header += "%s:%s\r\n" % (temp[0], temp[1])
+
             header += "\r\n"
 
-            # body = "hahaha %s " % time.ctime()
-            # body = mini_frame.login()
-            body = mini_frame.application(file_name)
             response = header+body
+            # 发送response给浏览器
             new_socket.send(response.encode("utf-8"))
 
         # 关闭连接
         new_socket.close()
+
+    def set_response_header(self, status, headers):
+        self.status = status
+        self.headers = [("server", "mini_web v1.0")]
+        self.headers += headers
+
 
     def run_forever(self):
         """用来完成整体的控制"""
