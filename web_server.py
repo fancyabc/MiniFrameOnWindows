@@ -1,8 +1,7 @@
 import socket
 import re
 import multiprocessing
-import time
-import mini_frame
+from dynamic import mini_frame
 
 
 class WSGIServer(object):
@@ -41,7 +40,7 @@ class WSGIServer(object):
         # 2 返回http格式的数据给浏览器
         if not file_name.endswith(".py"):
             try:
-                f = open("./html" + file_name, "rb")
+                f = open("./static" + file_name, "rb")
             except:
                 response = "HTTP/1.1 404 NOT FOUND\r\n"
                 response += "\r\n"
