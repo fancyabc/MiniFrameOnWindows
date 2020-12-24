@@ -1,10 +1,24 @@
+import re
+
 
 def index():
-    return "这是主页"
+    with open("./templates/index.html", encoding="utf-8") as f:
+        content = f.read()
+
+    my_stock_info = "hahaha 这是你本月名称。。。"
+    content = re.sub(r"\{%content%\}", my_stock_info, content)
+
+    return content
 
 
-def login():
-    return "这是登陆页面"
+def center():
+    with open("./templates/center.html", encoding="utf-8") as f:
+        content = f.read()
+
+    my_stock_info = "这是你从mysql查询来的数据。。。"
+    content = re.sub(r"\{%content%\}", my_stock_info, content)  # 替换模板中含 {%content%}  中的数据 为my_stock_info
+
+    return content
 
 
 def application(env, start_response):
@@ -13,7 +27,7 @@ def application(env, start_response):
 
     if file_name == "/index.py":
         return index()
-    elif file_name == "/login.py":
-        return login()
+    elif file_name == "/center.py":
+        return center()
     else:
         return 'Hello World! '
