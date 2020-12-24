@@ -65,7 +65,8 @@ class WSGIServer(object):
             header += "\r\n"
 
             # body = "hahaha %s " % time.ctime()
-            body = mini_frame.login()
+            # body = mini_frame.login()
+            body = mini_frame.application(file_name)
             response = header+body
             new_socket.send(response.encode("utf-8"))
 
