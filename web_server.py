@@ -61,7 +61,9 @@ class WSGIServer(object):
                 new_socket.send(html_content)
         else:
             # 如果以py接尾，是动态资源的请求
-            env = dict()
+            env = dict()  # 这个字典中存放的是web服务器要传递给web框架的数据信息
+            env['PATH_INFO'] = file_name
+            # {"PATH_INFO": "/index.py"}
             body = mini_frame.application(env, self.set_response_header)
 
             header = "HTTP/1.1 %s\r\n" % self.status
@@ -82,7 +84,6 @@ class WSGIServer(object):
         self.status = status
         self.headers = [("server", "mini_web v1.0")]
         self.headers += headers
-
 
     def run_forever(self):
         """用来完成整体的控制"""
