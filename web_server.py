@@ -1,6 +1,7 @@
 import socket
 import re
 import multiprocessing
+import time
 
 
 class WSGIServer(object):
@@ -37,28 +38,37 @@ class WSGIServer(object):
                 file_name = "/index.html"
 
         # 2 返回http格式的数据给浏览器
-        try:
-            f = open("./html" + file_name, "rb")
-        except:
-            response = "HTTP/1.1 404 NOT FOUND\r\n"
-            response += "\r\n"
-            response += "------file not found------"
-            new_socket.send(response.encode("utf-8"))
+        if not file_name.endswith(".py"):
+            try:
+                f = open("./html" + file_name, "rb")
+            except:
+                response = "HTTP/1.1 404 NOT FOUND\r\n"
+                response += "\r\n"
+                response += "------file not found------"
+                new_socket.send(response.encode("utf-8"))
+            else:
+                html_content = f.read()
+                f.close()
+                # 2.1 准备发送给浏览器的数据--header
+                response = "HTTP/1.1 200 OK\r\n"
+                response += "\r\n"
+
+                # 2.2 准备发送给浏览器的数据--body
+                # 将response header发送给浏览器
+                new_socket.send(response.encode("utf-8"))
+                # 将response body发送给浏览器
+                new_socket.send(html_content)
         else:
-            html_content = f.read()
-            f.close()
-            # 2.1 准备发送给浏览器的数据--header
-            response = "HTTP/1.1 200 OK\r\n"
-            response += "\r\n"
+            # 如果以py接尾，是动态资源的请求
+            header = "HTTP/1.1 200 OK\r\n"
+            header += "\r\n"
 
-            # 2.2 准备发送给浏览器的数据--body
-            # 将response header发送给浏览器
+            body = "hahaha %s " % time.ctime()
+            response = header+body
             new_socket.send(response.encode("utf-8"))
-            # 将response body发送给浏览器
-            new_socket.send(html_content)
 
-            # 关闭连接
-            new_socket.close()
+        # 关闭连接
+        new_socket.close()
 
     def run_forever(self):
         """用来完成整体的控制"""
