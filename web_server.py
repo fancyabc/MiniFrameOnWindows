@@ -41,9 +41,10 @@ class WSGIServer(object):
                 file_name = "/index.html"
 
         # 2 返回http格式的数据给浏览器
-        if not file_name.endswith(".py"):
+        # 如果请求资源不是以html结尾，那么就认为是静态资源文件（css/js/png, jpg等）
+        if not file_name.endswith(".html"):
             try:
-                f = open("./static" + file_name, "rb")
+                f = open(self.static_path + file_name, "rb")
             except:
                 response = "HTTP/1.1 404 NOT FOUND\r\n"
                 response += "\r\n"
@@ -62,7 +63,7 @@ class WSGIServer(object):
                 # 将response body发送给浏览器
                 new_socket.send(html_content)
         else:
-            # 如果以py接尾，是动态资源的请求
+            # 如果以html接尾，那么就认为是动态资源的请求（表面上是静态html文件，实际上还是会扔给框架处理）
             env = dict()  # 这个字典中存放的是web服务器要传递给web框架的数据信息
             env['PATH_INFO'] = file_name
             # {"PATH_INFO": "/index.py"}
@@ -129,7 +130,7 @@ def main():
         # print(app_name)
     else:
         print("请按照以下方式运行：")
-        print("python3 xxxx.py 7788 mini_frame:application")
+        print("python web_server.py 7788 mini_frame:application")
         return
 
     with open(".\\web_server.conf") as f:

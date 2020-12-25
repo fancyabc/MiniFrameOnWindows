@@ -1,9 +1,10 @@
 import re
 
 """
+修改后字典
 URL_FUNC_DICT = {
-    "/index.py": index,
-    "/center.py": center
+    "/index.html": index,
+    "/center.html": center
 }
 """
 
@@ -14,13 +15,13 @@ def route(url):
     def set_func(func):
         # URL_FUNC_DICT["/index.py"] = index
         URL_FUNC_DICT[url] = func
-        # def call_func(*args, **kwargs)
-        #     return func(*args, **kwargs)
-        # return call_func
+        def call_func(*args, **kwargs):
+            return func(*args, **kwargs)
+        return call_func
     return set_func
 
 
-@route("/index.py")     # 相当于 @set_func #  index = set_func(index)
+@route("/index.html")     # 相当于 @set_func #  index = set_func(index)
 def index():
     with open("./templates/index.html", encoding="utf-8") as f:
         content = f.read()
@@ -31,7 +32,7 @@ def index():
     return content
 
 
-@route("/center.py")
+@route("/center.html")
 def center():
     with open("./templates/center.html", encoding="utf-8") as f:
         content = f.read()
