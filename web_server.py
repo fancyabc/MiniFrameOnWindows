@@ -6,7 +6,7 @@ import sys
 
 
 class WSGIServer(object):
-    def __init__(self, port, app):
+    def __init__(self, port, app, static_path):
         # 1 创建套接字
         self.tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -17,6 +17,7 @@ class WSGIServer(object):
         # 3 变为监听套接字
         self.tcp_server_socket.listen(128)
         self.application = app
+        self.static_path = static_path
 
     def service_client(self, new_socket):
         """为这个客户端返回数据"""
@@ -65,7 +66,7 @@ class WSGIServer(object):
             env = dict()  # 这个字典中存放的是web服务器要传递给web框架的数据信息
             env['PATH_INFO'] = file_name
             # {"PATH_INFO": "/index.py"}
-            # body = dynamic.mini_frame
+            # body = dynamic.mini_frame.application(env, self.set_response_header)
             body = self.application(env, self.set_response_header)
 
             header = "HTTP/1.1 %s\r\n" % self.status
@@ -165,18 +166,26 @@ def main():
         # print(app_name)
     else:
         print("请按照以下方式运行：")
-        print("python3 xxxx.py 7788 miniframe:application")
+        print("python3 xxxx.py 7788 mini_frame:application")
         return
 
-    sys.path.append(".\\dynamic")    # 将当前目录下的dynamic子目录加入到系统路径
-    # print(sys.path)
+    with open(".\\web_server.conf") as f:
+        conf_info = eval(f.read())
+
+    # 此时 conf_info是一个字典，里面的数据为：
+    # {
+    #      "static_path":".\\static",
+    #      "dynamic_path":".\\dynamic"
+    # }
+
+    sys.path.append(conf_info['dynamic_path'])    # 将当前目录下的dynamic子目录加入到系统路径
 
     # import frame_name --> 找到 frame_name.py
     frame = __import__(frame_name)  # 返回标记这 导入的模块
     app = getattr(frame, app_name)  # 此时app指向了 dynamic/mini_frame模块中的application 这个函数
     # 上面那行相当于 app = frame.app_name
 
-    wsgi_sever = WSGIServer(port, app)
+    wsgi_sever = WSGIServer(port, app, conf_info['static_path'])
     wsgi_sever.run_forever()
 
 
