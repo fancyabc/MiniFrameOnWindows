@@ -17,4 +17,14 @@
 - version 2.0
 
     `miniframe`获取页面模板数据，对代码结构进行了划分：static和dynamic
+    
+- version 2.1
+
+    实现了模板中数据简单替换的功能
+
+- version 2.2
+
+    web服务器程序接收命令行参数
+    实现了web服务器时指定端口、指定对应的框架（mini_frame）
+
 

@@ -1,20 +1,22 @@
 import socket
 import re
 import multiprocessing
-from dynamic import mini_frame
+# from dynamic import mini_frame
+import sys
 
 
 class WSGIServer(object):
-    def __init__(self):
+    def __init__(self, port, app):
         # 1 创建套接字
         self.tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         # 2 绑定
-        self.tcp_server_socket.bind(("", 7788))
+        self.tcp_server_socket.bind(("", port))
 
         # 3 变为监听套接字
         self.tcp_server_socket.listen(128)
+        self.application = app
 
     def service_client(self, new_socket):
         """为这个客户端返回数据"""
@@ -63,7 +65,8 @@ class WSGIServer(object):
             env = dict()  # 这个字典中存放的是web服务器要传递给web框架的数据信息
             env['PATH_INFO'] = file_name
             # {"PATH_INFO": "/index.py"}
-            body = mini_frame.application(env, self.set_response_header)
+            # body = dynamic.mini_frame
+            body = self.application(env, self.set_response_header)
 
             header = "HTTP/1.1 %s\r\n" % self.status
 
@@ -100,10 +103,80 @@ class WSGIServer(object):
         self.tcp_server_socket.close()
 
 
+# 注释的main()函数是linux环境下的代码
+"""
 def main():
-    """控制整体，创建一个web服务器对象，然后调用这个对象的run_forever方法运行"""
+    # 控制整体，创建一个web服务器对象，然后调用这个对象的run_forever方法运行
+    if len(sys.argv) == 3:
+        try:
+            port = int(sys.argv[1])
+            frame_app_name = sys.argv[2]    # mini_frame:application
+        except Exception as ret:
+            print("端口输入错误。。。。")
+            return
+    else:
+        print("请按照以下方式运行：")
+        print("python3 xxxx.py 7788 miniframe:application")
+        return
 
-    wsgi_sever = WSGIServer()
+    # mini_frame:application
+    ret = re.match(r"([^:]+):(.*)", frame_app_name)
+    if ret:
+        frame_name = ret.group(1)   # mini_frame
+        app_name = ret.group(2)     # application
+    else:
+        print("请按照以下方式运行：")
+        print("python3 xxxx.py 7788 miniframe:application")
+        return
+
+    sys.path.append("./dynamic")
+
+    # import frame_name --> 找到 frame_name.py
+    frame = __import__(frame_name)  # 返回标记这 导入的模块
+    app = getattr(frame, app_name)  # 此时app指向了 dynamic/mini_frame模块中的application 这个函数
+
+    wsgi_sever = WSGIServer(port, app)
+    wsgi_sever.run_forever()
+"""
+
+
+def main():
+    """控制整体，创建一个web服务器对象，然后调用这个对象的run_forever方法运行
+        在windows平台下测试工作
+    """
+    if len(sys.argv) == 3:
+        try:
+            port = int(sys.argv[1])
+            frame_app_name = sys.argv[2]    # mini_frame:application
+        except Exception as ret:
+            print("端口输入错误。。。。")
+            return
+    else:
+        print("请按照以下方式运行：")
+        print("python3 xxxx.py 7788 miniframe:application")
+        return
+
+    # mini_frame:application
+    ret = re.match(r"([^:]+):(.*)", frame_app_name)
+    if ret:
+        frame_name = ret.group(1)   # mini_frame
+        # print(frame_name)
+        app_name = ret.group(2)     # application
+        # print(app_name)
+    else:
+        print("请按照以下方式运行：")
+        print("python3 xxxx.py 7788 miniframe:application")
+        return
+
+    sys.path.append(".\\dynamic")    # 将当前目录下的dynamic子目录加入到系统路径
+    # print(sys.path)
+
+    # import frame_name --> 找到 frame_name.py
+    frame = __import__(frame_name)  # 返回标记这 导入的模块
+    app = getattr(frame, app_name)  # 此时app指向了 dynamic/mini_frame模块中的application 这个函数
+    # 上面那行相当于 app = frame.app_name
+
+    wsgi_sever = WSGIServer(port, app)
     wsgi_sever.run_forever()
 
 
