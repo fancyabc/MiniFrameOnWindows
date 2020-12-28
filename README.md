@@ -39,3 +39,9 @@
 
     服务器支持伪静态
 
+- version 2.6 
+    
+    1.增加了从mysql数据库查询的功能
+    2.python在windows平台上打开文档时，将编码转换成utf-8
+![image](pics\python在windows打开文件.jpg)
+    

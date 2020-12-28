@@ -1,4 +1,5 @@
 import re
+from pymysql import connect
 
 """
 修改后字典
@@ -23,11 +24,20 @@ def route(url):
 
 @route("/index.html")     # 相当于 @set_func #  index = set_func(index)
 def index():
-    with open("./templates/index.html", encoding="utf-8") as f:
+    with open("./templates/index.html", encoding="utf-8") as f:  # windows上默认编码是gbk，python处理时需要以utf-8方式打开，否则会出错
         content = f.read()
 
-    my_stock_info = "hahaha 这是你本月名称。。。"
-    content = re.sub(r"\{%content%\}", my_stock_info, content)
+    # content = re.sub(r"\{%content%\}", my_stock_info, content)
+    # 创建Connection连接
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    cs = conn.cursor()
+    cs.execute("select * from info;")
+    my_stock_info = cs.fetchall()
+
+    cs.close()
+    conn.close()
+
+    content = re.sub(r"\{%content%\}", str(my_stock_info), content)
 
     return content
 
