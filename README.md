@@ -43,5 +43,8 @@
     
     1.增加了从mysql数据库查询的功能
     2.python在windows平台上打开文档时，将编码转换成utf-8
-![image](pics\python在windows打开文件.jpg)
+![image](pics/python在windows打开文件.jpg)
+ 
+ - version 2.7
     
+    组装mysql数据库查询的结果为html格式，使数据显示规范化

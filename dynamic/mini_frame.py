@@ -37,7 +37,27 @@ def index():
     cs.close()
     conn.close()
 
-    content = re.sub(r"\{%content%\}", str(my_stock_info), content)
+    tr_template = """<tr>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>    
+        <td>%s</td>
+        <td>%s</td>
+        <td>
+            <input type="botton" value="添加" id="toAdd" name="toAdd" systemidvalue="000007">
+        </td>  
+        </tr>
+    """
+
+    html = ""
+    for line_info in my_stock_info:
+        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6], line_info[7])
+
+    # content = re.sub(r"\{%content%\}", str(my_stock_info), content)
+    content = re.sub(r"\{%content%\}", html, content)
 
     return content
 
@@ -47,8 +67,40 @@ def center():
     with open("./templates/center.html", encoding="utf-8") as f:
         content = f.read()
 
-    my_stock_info = "这是你从mysql查询来的数据。。。"
-    content = re.sub(r"\{%content%\}", my_stock_info, content)  # 替换模板中含 {%content%}  中的数据 为my_stock_info
+    # 1 建立连接
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    # 2 获取游标
+    cs = conn.cursor()
+    # 3 数据查询
+    cs.execute("select i.code,i.short,i.chg,i.turnover,i.price,i.highs,f.note_info from info as i inner join focus as f on i.id=f.info_id;")    # 查询连结数据表后的结果
+    my_stock_info = cs.fetchall()
+    # 4 关闭游标和连接
+    cs.close()
+    conn.close()
+
+    # 5 组合html格式数据
+    tr_template = """<tr>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>
+        <td>%s</td>    
+        <td>%s</td>
+        <td>
+            <a type=""button class="btn btn-default btn-xs" href="/update/300268.html"> <span class="glyphicon glyphicon-star" aria-hidden="true"> </span> 修改 </a>
+        </td>
+        <td>
+            <input type="button" value="删除" id="toDel" name="toDel" systemidvalue="300268">
+        </td>  
+        </tr>
+    """
+
+    html = ""
+    for line_info in my_stock_info:
+        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6])
+
+    content = re.sub(r"\{%content%\}", html, content)  # 替换模板中含 {%content%}  中的数据 为my_stock_info
 
     return content
 
@@ -56,15 +108,6 @@ def center():
 def application(env, start_response):
     start_response('200 OK', [('Content-Type', 'text/html; Charset=utf-8')])
     file_name = env['PATH_INFO']
-
-    """
-    if file_name == "/index.py":
-        return index()
-    elif file_name == "/center.py":
-        return center()
-    else:
-        return 'Hello World! '
-    """
 
     try:
         # func = URL_FUNC_DICT[file_name]
