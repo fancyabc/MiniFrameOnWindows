@@ -177,6 +177,50 @@ def del_focus(ret):
     return "取消关注成功 ...."
 
 
+@route(r"/update/(\d+)\.html")
+def show_update_page(ret):
+    """显示修改的那个页面"""
+    # 1 获取股票代码
+    stock_code = ret.group(1)
+
+    # 2 打开模板
+    with open("./templates/update.html", encoding="utf-8") as f:
+        content = f.read()
+
+    # 3 根据股票代码擦汗寻相关备注信息
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    cs = conn.cursor()
+    sql = """select f.note_info from focus as f inner join info as i on i.id=f.info_id where i.code=%s;"""
+    cs.execute(sql, (stock_code,))
+    stock_infos = cs.fetchone()
+    note_info = stock_infos[0]  # 获取这个股票对应的信息
+    cs.close()
+    conn.close()
+
+    content = re.sub(r"\{%note_info%\}", note_info, content)
+    content = re.sub(r"\{%code%\}", stock_code, content)
+    return content
+
+
+@route(r"/update/(\d+)/(.*)\.html")
+def save_update_page(ret):
+    """保存修改的那个页面"""
+
+    stock_code = ret.group(1)
+    comment = ret.group(2)
+    print(comment)
+
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    cs = conn.cursor()
+    sql = """update focus set note_info=%s where info_id = (select id from info where code=%s);"""
+    cs.execute(sql, (comment, stock_code))
+    conn.commit()
+    cs.close()
+    conn.close()
+
+    return "修改成功。。。"
+
+
 def application(env, start_response):
     start_response('200 OK', [('Content-Type', 'text/html; Charset=utf-8')])
     file_name = env['PATH_INFO']
