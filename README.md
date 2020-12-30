@@ -59,3 +59,7 @@ def add_focus():
     return "add ok ...."
 ```
 ![image](pics/路由正则示例.jpg)
+
+- version 3.1
+
+    实现了添加关注的功能:通过正则分组将股票代码从添加生成的url中提取出来，然后mysql查询，将符合条件的股票代码项插入focus数据表

@@ -23,7 +23,7 @@ def route(url):
 
 
 @route("/index.html")     # 相当于 @set_func #  index = set_func(index)
-def index():
+def index(ret):
     with open("./templates/index.html", encoding="utf-8") as f:  # windows上默认编码是gbk，python处理时需要以utf-8方式打开，否则会出错
         content = f.read()
 
@@ -63,7 +63,7 @@ def index():
 
 
 @route("/center.html")
-def center():
+def center(ret):
     with open("./templates/center.html", encoding="utf-8") as f:
         content = f.read()
 
@@ -105,9 +105,40 @@ def center():
     return content
 
 
-@route(r"/add/\d+\.html")
-def add_focus():
-    return "add ok ...."
+@route(r"/add/(\d+)\.html")     # 注意，此处的（\d+）将股票代码对应的页面数字作为一个分组，没有这步处理，下面的查询、插入等操作会无法进行
+def add_focus(ret):
+    # 1. 获取股票代码
+    stock_code = ret.group(1)
+    print(ret.group(1))
+
+    # 2. 判断是否有这个股票代码
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    cs = conn.cursor()
+    sql = """select * from info where code=%s;"""
+    cs.execute(sql, (stock_code,))
+    # 如果没有这个股票代码，就认为这个使非法请求
+    if not cs.fetchone():
+        cs.close()
+        conn.close()
+        return "没有这只股票！"
+
+    # 3. 判断以下是否已经关注过
+    sql = """ select * from info as i inner join focus as f on i.id=f.info_id where i.code=%s;"""
+    cs.execute(sql, (stock_code,))
+    # 如果查出来了，那么表示已经关注过
+    if cs.fetchone():
+        cs.close()
+        conn.close()
+        return "已经关注过了，请勿重复关注！"
+
+    # 4. 添加关注
+    sql = """insert into focus (info_id) select id from info where code=%s;"""
+    cs.execute(sql, (stock_code,))
+    conn.commit()
+    cs.close()
+    conn.close()
+
+    return "关注成功 ...."
 
 
 def application(env, start_response):
@@ -118,10 +149,10 @@ def application(env, start_response):
         # func = URL_FUNC_DICT[file_name]
         # return func
         # return URL_FUNC_DICT[file_name]()
-        for url, func in URL_FUNC_DICT.items():
+        for url, func in URL_FUNC_DICT.items():     # url对应key  func对应value，存储在字典URL_FUNC_DICT中
             ret = re.match(url, file_name)
             if ret:
-                return func()
+                return func(ret)                # 此处返回请求的url在URL_FUNC_DICT中的value值，对匹配后的值交给对应路由函数
         else:
             return "请求的url(%s)没有对应的函数..." % file_name
 
