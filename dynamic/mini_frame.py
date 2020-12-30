@@ -1,5 +1,6 @@
 import re
 from pymysql import connect
+import urllib.parse
 
 """
 修改后字典
@@ -208,7 +209,9 @@ def save_update_page(ret):
 
     stock_code = ret.group(1)
     comment = ret.group(2)
-    print(comment)
+    # 浏览器client 将数据编码传送到 server，server 将数据请求 传递给 frame ，frame 将数据传入 mysql，在这个过程中数据是编码状态
+    # 不需要将浏览器编码的数据保存到数据库，在框架这里进行解码再传给数据库
+    comment = urllib.parse.unquote(comment)
 
     conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
     cs = conn.cursor()
