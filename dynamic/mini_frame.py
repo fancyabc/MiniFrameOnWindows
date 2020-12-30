@@ -47,14 +47,14 @@ def index():
         <td>%s</td>
         <td>%s</td>
         <td>
-            <input type="botton" value="添加" id="toAdd" name="toAdd" systemidvalue="000007">
+            <input type="button" value="添加" id="toAdd" name="toAdd" systemidvalue="%s">
         </td>  
         </tr>
     """
 
     html = ""
     for line_info in my_stock_info:
-        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6], line_info[7])
+        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6], line_info[7], line_info[1])
 
     # content = re.sub(r"\{%content%\}", str(my_stock_info), content)
     content = re.sub(r"\{%content%\}", html, content)
@@ -105,6 +105,11 @@ def center():
     return content
 
 
+@route(r"/add/\d+\.html")
+def add_focus():
+    return "add ok ...."
+
+
 def application(env, start_response):
     start_response('200 OK', [('Content-Type', 'text/html; Charset=utf-8')])
     file_name = env['PATH_INFO']
@@ -112,7 +117,14 @@ def application(env, start_response):
     try:
         # func = URL_FUNC_DICT[file_name]
         # return func
-        return URL_FUNC_DICT[file_name]()
+        # return URL_FUNC_DICT[file_name]()
+        for url, func in URL_FUNC_DICT.items():
+            ret = re.match(url, file_name)
+            if ret:
+                return func()
+        else:
+            return "请求的url(%s)没有对应的函数..." % file_name
+
     except Exception as ret:
         return "产生了异常： %s" % str(ret)
 

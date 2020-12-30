@@ -6,6 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>个人中心 - 个人选股系统 V5.87</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
+      <script src="/js/jquery-1.12.4.js"></script>>
+      <script src="/js/bootstrap.min.js"></script>>
+      <script>
+          $(document).ready(function () {
+
+              $("input[name='toDel']").each(function () {
+                  var currentAdd = $(this);
+                  currentAdd.click(function () {
+                      code = $(this).attr("systemIdValue");
+                      // alert("/del/" + code + ".html"))
+                      $.get("/del/" + code + ".html", function (data, status) {
+                          alert("数据：" + data + "\n状态：" + status);
+                      });
+                      window.location.reload()
+                  });
+              });
+          });
+      </script>>
   </head>
   <body>
 <div class="navbar navbar-inverse navbar-static-top ">
@@ -47,6 +65,5 @@
       </table>
     </div>
   </div>
-    <script src="static/js/bootstrap.min.js"></script>
   </body>
 </html>            

@@ -48,3 +48,14 @@
  - version 2.7
     
     组装mysql数据库查询的结果为html格式，使数据显示规范化
+    
+- version 3.0
+
+    实现路由支持正则功能
+    
+ ```py
+@route(r"/add/\d+\.html")
+def add_focus():
+    return "add ok ...."
+```
+![image](pics/路由正则示例.jpg)
