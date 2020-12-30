@@ -1,6 +1,7 @@
 import re
 from pymysql import connect
 import urllib.parse
+import logging
 
 """
 修改后字典
@@ -227,6 +228,15 @@ def save_update_page(ret):
 def application(env, start_response):
     start_response('200 OK', [('Content-Type', 'text/html; Charset=utf-8')])
     file_name = env['PATH_INFO']
+
+    logging.basicConfig(
+        level=logging.INFO,
+        filename='./log.txt',
+        filemode='a',
+        format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s'
+    )
+
+    logging.info("访问的是：%s" % file_name)
 
     try:
         # func = URL_FUNC_DICT[file_name]
