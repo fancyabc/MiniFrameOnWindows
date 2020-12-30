@@ -88,17 +88,17 @@ def center(ret):
         <td>%s</td>    
         <td>%s</td>
         <td>
-            <a type=""button class="btn btn-default btn-xs" href="/update/300268.html"> <span class="glyphicon glyphicon-star" aria-hidden="true"> </span> 修改 </a>
+            <a type=""button class="btn btn-default btn-xs" href="/update/%s.html"> <span class="glyphicon glyphicon-star" aria-hidden="true"> </span> 修改 </a>
         </td>
         <td>
-            <input type="button" value="删除" id="toDel" name="toDel" systemidvalue="300268">
+            <input type="button" value="删除" id="toDel" name="toDel" systemidvalue="%s">
         </td>  
         </tr>
     """
 
     html = ""
     for line_info in my_stock_info:
-        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6])
+        html += tr_template % (line_info[0], line_info[1], line_info[2], line_info[3], line_info[4], line_info[5], line_info[6], line_info[0], line_info[0])
 
     content = re.sub(r"\{%content%\}", html, content)  # 替换模板中含 {%content%}  中的数据 为my_stock_info
 
@@ -139,6 +139,42 @@ def add_focus(ret):
     conn.close()
 
     return "关注成功 ...."
+
+
+@route(r"/del/(\d+)\.html")     # 注意，此处的（\d+）将股票代码对应的页面数字作为一个分组，没有这步处理，下面的查询、插入等操作会无法进行
+def del_focus(ret):
+
+    # 1. 获取股票代码
+    stock_code = ret.group(1)
+
+    # 2. 判断是否有这个股票代码
+    conn = connect(host='localhost', port=3306, user='fancy', password='sf825874', database='my_stock', charset='utf8')
+    cs = conn.cursor()
+    sql = """select * from info where code=%s;"""
+    cs.execute(sql, (stock_code,))
+    # 如果没有这个股票代码，就认为这个使非法请求
+    if not cs.fetchone():
+        cs.close()
+        conn.close()
+        return "没有这只股票！"
+
+    # 3. 判断以下是否已经关注过
+    sql = """ select * from info as i inner join focus as f on i.id=f.info_id where i.code=%s;"""
+    cs.execute(sql, (stock_code,))
+    # 如果没有查出来，那么表示没有关注过
+    if not cs.fetchone():
+        cs.close()
+        conn.close()
+        return "%s 尚未关注，请勿取消关注！" % stock_code
+
+    # 4. 取消关注
+    sql = """delete from focus where info_id = (select id from info where code=%s);"""
+    cs.execute(sql, (stock_code,))
+    conn.commit()
+    cs.close()
+    conn.close()
+
+    return "取消关注成功 ...."
 
 
 def application(env, start_response):
